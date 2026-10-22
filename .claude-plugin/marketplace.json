@@ -1,0 +1,15 @@
+{
+  "name": "ilianusss",
+  "description": "Iliane's Claude Code plugins.",
+  "owner": {
+    "name": "Iliane Formet",
+    "url": "https://github.com/ilianusss"
+  },
+  "plugins": [
+    {
+      "name": "skin",
+      "source": "./",
+      "description": "Skins for Claude Code: tool rows with icons, diff, table and Mermaid chart cards, a usage band and sixteen themes. /skin swaps them live."
+    }
+  ]
+}
