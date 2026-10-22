@@ -33,9 +33,13 @@ command -v claude >/dev/null || { echo "install.sh: claude is not on PATH" >&2; 
 for dir in "${dirs[@]}"; do
     dir=${dir/#\~/$HOME}
     echo "== $dir"
+    # The default dir runs without CLAUDE_CONFIG_DIR: set, Claude Code looks for its global
+    # config inside the dir instead of ~/.claude.json.
+    env=()
+    [[ $dir == "$HOME/.claude" ]] || env=("CLAUDE_CONFIG_DIR=$dir")
     # Adding a marketplace that is already there fails harmlessly; the install below still runs.
-    CLAUDE_CONFIG_DIR=$dir claude plugin marketplace add "$source_ref" || true
-    CLAUDE_CONFIG_DIR=$dir claude plugin install skin@ilianusss
+    env "${env[@]}" claude plugin marketplace add "$source_ref" || true
+    env "${env[@]}" claude plugin install skin@ilianusss
 
     if [[ -n $theme_home ]]; then
         python3 -I - "$dir/settings.json" "$theme_home" <<'PY'
