@@ -1,5 +1,5 @@
 {
-  "name": "claude-skins-vendor",
+  "name": "claude-skin-vendor",
   "private": true,
   "description": "Builds hooks/vendor/mermaid-ascii.js from beautiful-mermaid",
   "type": "module",
