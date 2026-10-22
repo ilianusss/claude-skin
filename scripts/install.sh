@@ -35,11 +35,12 @@ for dir in "${dirs[@]}"; do
     echo "== $dir"
     # The default dir runs without CLAUDE_CONFIG_DIR: set, Claude Code looks for its global
     # config inside the dir instead of ~/.claude.json.
-    env=()
-    [[ $dir == "$HOME/.claude" ]] || env=("CLAUDE_CONFIG_DIR=$dir")
+    scope=()
+    [[ $dir == "$HOME/.claude" ]] || scope=("CLAUDE_CONFIG_DIR=$dir")
     # Adding a marketplace that is already there fails harmlessly; the install below still runs.
-    env "${env[@]}" claude plugin marketplace add "$source_ref" || true
-    env "${env[@]}" claude plugin install skin@ilianusss
+    # ${scope[@]+...}: an empty array under `set -u` is an error in macOS's bash 3.2.
+    env ${scope[@]+"${scope[@]}"} claude plugin marketplace add "$source_ref" || true
+    env ${scope[@]+"${scope[@]}"} claude plugin install skin@ilianusss
 
     if [[ -n $theme_home ]]; then
         python3 -I - "$dir/settings.json" "$theme_home" <<'PY'
