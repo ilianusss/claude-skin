@@ -171,49 +171,51 @@ function fakeFs(on: On, files: Record<string, string>, links: Record<string, str
   const mtimes: Record<string, number> = {}
   const writes: string[] = []
   const parentOf = (path: string) => path.slice(0, path.lastIndexOf('/'))
+  // Windows resolves a path before it reaches the hook: drop the drive and the backslashes.
+  const at = (path: string) => path.replace(/^[A-Za-z]:/, '').replace(/\\/g, '/')
 
   on('fs.read', ($, e) => {
-    const text = files[e.path]
+    const text = files[at(e.path)]
 
     if (text === undefined) {
-      throw new Error(`ENOENT ${e.path}`)
+      throw new Error(`ENOENT ${at(e.path)}`)
     }
 
     return { value: text }
   })
   on('fs.write', ($, e) => {
-    files[e.path] = e.text
-    mtimes[e.path] = (mtimes[e.path] ?? 0) + 1
-    writes.push(e.path)
+    files[at(e.path)] = e.text
+    mtimes[at(e.path)] = (mtimes[at(e.path)] ?? 0) + 1
+    writes.push(at(e.path))
     return { value: undefined }
   })
-  on('fs.exists', ($, e) => ({ value: Object.keys(files).some(path => path === e.path || path.startsWith(`${e.path}/`)) }))
+  on('fs.exists', ($, e) => ({ value: Object.keys(files).some(path => path === at(e.path) || path.startsWith(`${at(e.path)}/`)) }))
   on('fs.list', ($, e) => {
     const names = new Map<string, 'file' | 'dir'>()
 
     for (const path of Object.keys(files)) {
-      if (path.startsWith(`${e.path}/`)) {
-        const [name = '', ...rest] = path.slice(e.path.length + 1).split('/')
+      if (path.startsWith(`${at(e.path)}/`)) {
+        const [name = '', ...rest] = path.slice(at(e.path).length + 1).split('/')
         names.set(name, rest.length === 0 ? 'file' : 'dir')
       }
     }
 
     if (names.size === 0) {
-      throw new Error(`ENOENT ${e.path}`)
+      throw new Error(`ENOENT ${at(e.path)}`)
     }
 
     return {
-      value: [...names].map(([name, kind]) => ({ name, kind, size: files[`${e.path}/${name}`]?.length ?? 0, mtimeMs: mtimes[`${e.path}/${name}`] ?? 0, isLink: false })),
+      value: [...names].map(([name, kind]) => ({ name, kind, size: files[`${at(e.path)}/${name}`]?.length ?? 0, mtimeMs: mtimes[`${at(e.path)}/${name}`] ?? 0, isLink: false })),
     }
   })
   on('fs.stat', ($, e) => {
-    const target = links[e.path]
+    const target = links[at(e.path)]
 
-    if (target === undefined && files[e.path] === undefined) {
-      throw new Error(`ENOENT ${e.path}`)
+    if (target === undefined && files[at(e.path)] === undefined) {
+      throw new Error(`ENOENT ${at(e.path)}`)
     }
 
-    return { value: { kind: target === undefined ? 'file' : 'dir', size: 0, mtimeMs: mtimes[e.path] ?? 0, isLink: target !== undefined, ...(target === undefined ? {} : { realPath: target }) } }
+    return { value: { kind: target === undefined ? 'file' : 'dir', size: 0, mtimeMs: mtimes[at(e.path)] ?? 0, isLink: target !== undefined, ...(target === undefined ? {} : { realPath: target }) } }
   })
 
   return {

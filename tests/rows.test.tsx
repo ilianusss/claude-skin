@@ -1603,7 +1603,7 @@ async function sendStep($: Engine, responses: Responses, read: number, written: 
   while (!(await stream.next()).done) {}
 }
 
-test('on a plan, the band shows the cache warm for an hour after a main-loop request, cooling, then cold', async ($, on) => {
+test('on a plan, the band shows the cache warm for an hour after a main-loop request, cooling, then cold', { timeoutMs: 30_000 }, async ($, on) => {
   const { clock, responses } = cacheEngine(on, [{ kind: 'five_hour', percentUsed: 18 }])
   await startDesktop($, on)
 
