@@ -1,7 +1,8 @@
 name: CI
 
-# Tests, manifest checks and the type check on all three systems against a pinned Claude Code,
-# and on Linux against the latest build as an early warning. No model call, no secret.
+# Tests and manifest checks on all three systems against a pinned Claude Code, and on Linux against
+# the latest build as an early warning. No model call, no secret. The type check is not here: the
+# plugin API declarations are only written by a logged-in Claude Code, so it runs locally (AGENTS.md).
 on:
   push:
     branches: [main]
@@ -48,21 +49,3 @@ jobs:
 
       - name: Engine tests
         run: claude plugin test .
-
-      # Loading the plugin from a folder writes the API's declarations beside it; the print run
-      # has no credentials and stops there. tsconfig.json reads them from .claude/types. Pinned
-      # build only: later builds do not lay them on a print run without login.
-      - name: Lay the plugin API types
-        if: matrix.claude != 'latest'
-        env:
-          ANTHROPIC_API_KEY: ''
-        run: |
-          claude --plugin-dir . -p 'types' > /dev/null 2>&1 || true
-          test -f .claude-plugin/types/claude-code/index.d.ts
-          mkdir -p .claude/types
-          cp -R .claude-plugin/types/. .claude/types/
-          rm -f .claude/types/tsconfig.json
-
-      - name: Type check
-        if: matrix.claude != 'latest'
-        run: npx -y -p typescript@5.9.3 tsc -p tsconfig.json
