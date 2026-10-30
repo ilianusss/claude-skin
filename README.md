@@ -39,11 +39,4 @@ Your own skins: ask Claude *"make me a skin that feels like a sunset"* (the `mak
 `~/.claude/skins/<name>.json`), or repaint a colour in `/skin`. Force light or dark with
 `SKIN_APPEARANCE=light|dark`.
 
-## .theme mode
-
-With `SKIN_THEME_HOME=~/.theme` in Claude Code's settings `env`, the skins are the palettes of a
-[`theme`](docs/theme-mode.md) folder: `/skin` lists only them, picking one runs `theme colors` (the
-terminal and Neovim follow), and `theme colors` in a shell moves every session's skin.
-`scripts/install.sh --prometheus` sets it up.
-
 Forked from [hellosverre/claude-skins](https://github.com/hellosverre/claude-skins) (MIT).
