@@ -18,6 +18,20 @@ Needs Claude Code 2.1.287 or later (terminal or the desktop app's Code tab). Ins
 Restart Claude Code; the `noir` skin is on. Or from a shell, for one or several config dirs:
 `scripts/install.sh [--config-dir DIR]…`. Updates: `claude plugin update skin@ilianusss`.
 
+## Uninstall
+
+From a shell, then restart Claude Code:
+
+```sh
+claude plugin uninstall skin@ilianusss
+claude plugin marketplace remove ilianusss
+```
+
+The second line is optional: it forgets the marketplace so the plugin can no longer be found or
+updated. For another config dir, prefix both with `CLAUDE_CONFIG_DIR=DIR`. Uninstalling deletes
+the plugin's settings and pinned folders; add `--keep-data` to keep them. Your own skins in
+`~/.claude/skins/` stay, and so does a `SKIN_THEME_HOME` line you added to a `settings.json`.
+
 ## Commands
 
 | Command | What it does |
