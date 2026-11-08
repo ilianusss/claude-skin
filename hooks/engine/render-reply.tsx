@@ -51,7 +51,7 @@ export function hookReplyRenders(on: On, turn: Turn): void {
       return next(e)
     }
 
-    const look = lookOf($.ui.resolve(e), active, e.surface)
+    const look = lookOf($.ui.resolve(e), active, e.surface, copier($, e.surface))
     const hasImages = await hasImagesOf($, e)
 
     // Claude Code draws the images; the text is already in the outline above them.

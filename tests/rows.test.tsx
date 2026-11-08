@@ -302,6 +302,11 @@ test('/skin expand on: a click on the group’s line folds it to one line, a sec
   expect(await isLine(true), 'and true is Claude Code’s open group').toBe(false)
 })
 
+type Node = { props: { alignItems?: string; borderStyle?: string; minWidth?: number }; children?: readonly Node[] }
+
+// The prompt's outline, inside the plain Box that lays Copy over its border.
+const outlineOf = (column: Node | undefined): Node | undefined => column?.children?.[0]?.children?.[0]
+
 test('a typed prompt sits in an outline sized to its text, other senders keep their row', async ($, on) => {
   stubEngine(on)
 
@@ -309,16 +314,52 @@ test('a typed prompt sits in an outline sized to its text, other senders keep th
     ({ ...SITE, surface: 'terminal', component: 'UserMessage', requestId: 'm1', props: { text: 'fix the build', origin: { kind }, isExpanded: false } }) as const
 
   const typed = await $.ui.mount(prompt('composer'))
-  const column = (await typed.find({ type: 'Box' })) as { props: { alignItems?: string }; children?: readonly { props?: { borderStyle?: string } }[] } | undefined
+  const column = (await typed.find({ type: 'Box' })) as Node | undefined
   // The outline hugs the text: its column does not stretch it to the full width.
   expect(column?.props.alignItems).toBe('flex-start')
-  expect(column?.children?.[0]?.props?.borderStyle).toBe('round')
+  expect(outlineOf(column)?.props.borderStyle).toBe('round')
   expect(await typed.find({ type: 'Text', text: 'fix the build' })).toBeDefined()
   await typed.unmount()
 
   const notice = await $.ui.mount(prompt('task-notification'))
   expect(await notice.find({ type: 'Text', text: 'stock row' })).toBeDefined()
   await notice.unmount()
+})
+
+test('a typed prompt on the terminal has Copy on its outline, or beside it when plain, until /skin copy off', async ($, on) => {
+  stubEngine(on)
+  const copied: string[] = []
+  on('ui.copy', ($, e) => {
+    copied.push(e.text)
+    return { value: { isCopied: true } }
+  })
+  const text = 'fix the build\n  and keep `the indent`'
+  const mount = () => $.ui.mount({ ...SITE, surface: 'terminal', component: 'UserMessage', requestId: 'm1', props: { text, origin: { kind: 'composer' }, isExpanded: false } })
+
+  for (const mode of ['left', 'right', 'plain']) {
+    await runSkin($, `prompt ${mode}`)
+    const typed = await mount()
+    await typed.press({ key: 'copy-prompt' })
+    await typed.unmount()
+  }
+
+  expect(copied).toEqual([text, text, text])
+
+  await runSkin($, 'prompt left')
+  await runSkin($, 'copy off')
+  const bare = await mount()
+  expect(await bare.find({ key: 'copy-prompt' })).toBeUndefined()
+  await bare.unmount()
+})
+
+test('a short prompt’s outline is wide enough for the Copy laid over it', async ($, on) => {
+  stubEngine(on)
+  on('ui.copy', () => ({ value: { isCopied: true } }))
+  const typed = await $.ui.mount({ ...SITE, surface: 'terminal', component: 'UserMessage', requestId: 'm1', props: { text: 'hi', origin: { kind: 'composer' }, isExpanded: false } })
+  const outline = outlineOf((await typed.find({ type: 'Box' })) as Node | undefined)
+  // ╭─ + ' Copy ' + ─╮ and a corner's breath on the left.
+  expect(outline?.props.minWidth).toBeGreaterThanOrEqual(' Copy '.length + 4)
+  await typed.unmount()
 })
 
 test('a prompt in Markdown shows its marks as typed, and brackets and parentheses never open math', () => {
