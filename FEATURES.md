@@ -55,7 +55,7 @@ CLI. Each part named in `code` switches with `/skin <part> on|off`. Where the co
   overrides), the app's links on the desktop; paths with `:line`, numbers and versions coloured.
 - **Side by side**: tables and charts in a row share it when they fit.
 - **Copy** (`copy`): a button on every card, tables also `as text`, `copy reply` under multi-block
-  replies; `/skin copy` and `/skin copy code`.
+  replies, and on your prompts on the terminal; `/skin copy` and `/skin copy code`.
 - **Fold** (`fold`): long code, tables and shell output fold behind `▾ N more`.
 - **Command output** (`commands`): `/cost`, `/context` and plugin output — tables, code and
   `key: value` runs — drawn as cards.
@@ -65,7 +65,8 @@ CLI. Each part named in `code` switches with `/skin <part> on|off`. Where the co
 ## Around the transcript
 
 - **Your prompts** (terminal): a rounded outline, on the left or right (`/skin prompt`), or a plain
-  marker. The desktop keeps the app's messages (copy, rewind, selection).
+  marker, with Copy on the outline (after the text when plain). The desktop keeps the app's
+  messages (copy, rewind, selection).
 - **Spinner**: the skin's words with a band of light (`shimmer`) on the terminal; an animated icon per
   phase on the desktop. `/skin words claude` keeps Claude Code's words.
 - **Turn footer**: the skin's past-tense word, the time, tools used and lines changed.

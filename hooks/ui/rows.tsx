@@ -2,6 +2,7 @@ import type { Touch, TurnStats } from '../../types'
 import { formatDuration, formatMs } from '../util/format'
 import { MAX_MARKDOWN } from '../markdown/reply'
 import type { Kind } from '../skins/skin'
+import { copyButton, onBorder } from './cards'
 import { spinnerColor, spinnerIcon, toolIcon } from './icons'
 import type { SpinnerMode } from './icons'
 import { kindOf, toolLabel } from '../tools/tools'
@@ -237,27 +238,42 @@ export const literal = (text: string): string =>
     .map(line => line.replace(/[!-\/:-@\[-`{-~]/g, mark => REFERENCES[mark] ?? `\\${mark}`).replace(/^ +/, spaces => ' '.repeat(spaces.length)))
     .join('  \n')
 
+const COPY_LABEL = ' Copy '
+
 // Your message in a rounded outline sized to what you typed, so it stands apart from
 // replies without taking the full width. Images it carried follow below it, drawn by
 // Claude Code. `/skin prompt right` puts it on the right, where the desktop app draws it,
 // and `/skin prompt plain` drops the outline for the skin's prompt marker.
+// Copy sits on the outline's top border, or after the text when the prompt is plain.
 // On the desktop app the text is the app's own Markdown, which can be selected and copied;
 // a prompt too long for one Markdown block keeps the Text.
 export function promptRow(look: Look, text: string, images?: ReturnType<Ui['Text']>) {
   const { Box, Markdown, Text } = look.ui
   const markdown = look.surface === 'terminal' ? null : literal(text)
   const plain = look.prefs.prompt === 'plain'
+  const copy = copyButton(look, 'copy-prompt', text, COPY_LABEL)
+  const body = [
+    plain ? <Text color={look.skin.palette.user}>{`${look.icons.prompt} `}</Text> : '',
+    markdown === null || markdown.length > MAX_MARKDOWN ? <Text color={look.skin.palette.fg}>{text}</Text> : <Markdown text={markdown} />,
+  ]
 
   return (
     <Box flexDirection="column" alignItems={look.prefs.prompt === 'right' ? 'flex-end' : 'flex-start'} marginY={1}>
-      <Box {...(plain ? {} : { borderStyle: 'round' as const, borderColor: look.skin.palette.muted, paddingX: 1 })} flexShrink={1}>
-        {plain ? <Text color={look.skin.palette.user}>{`${look.icons.prompt} `}</Text> : ''}
-        {markdown === null || markdown.length > MAX_MARKDOWN ? (
-          <Text color={look.skin.palette.fg}>{text}</Text>
-        ) : (
-          <Markdown text={markdown} />
-        )}
-      </Box>
+      {plain ? (
+        <Box flexShrink={1}>
+          {body}
+          {copy ?? ''}
+        </Box>
+      ) : (
+        onBorder(
+          look,
+          // Wide enough that a short prompt's border still has room for Copy and both corners.
+          <Box borderStyle="round" borderColor={look.skin.palette.muted} paddingX={1} flexShrink={1} {...(copy === undefined ? {} : { minWidth: COPY_LABEL.length + 4 })}>
+            {body}
+          </Box>,
+          { control: copy, box: { flexShrink: 1 } },
+        )
+      )}
       {images ?? ''}
     </Box>
   )
